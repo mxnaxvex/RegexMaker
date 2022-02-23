@@ -55,10 +55,23 @@ class RegTree {
   private val Branch_Num = 3
 
   val LEVELUPTABLE: Array[Char] = Array[Char]( //level 0 up to level 1
-    BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, 58, 59, 60, 61, 62, 63, 64, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, 91, 92, 93, 94, 95, 96, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, 123, 124, 125, 126, 127)
+    BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK,
+    BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK,
+    BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK, BLANK,
+    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL, DIGITAL,
+    58, 59, 60, 61, 62, 63, 64, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U,
+    LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U,
+    LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U,
+    LETTER_U, LETTER_U, LETTER_U, LETTER_U, LETTER_U, 91, 92, 93, 94, 95, 96,
+    LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L,
+    LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L,
+    LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L, LETTER_L,
+    LETTER_L, LETTER_L, 123, 124, 125, 126, 127)
 
-  val RegMap = Map[Char, String](DIGITAL -> "\\d", LETTER_L -> "[a-z]", LETTER_U -> "[A-Z]", LETTER -> "[a-zA-z]",
-    OTHERLANG -> "[\\u0100-\\uffff]", BLANK -> "\\s", CHAR_WORD -> "\\w", CHAR_ALL -> ".", rootId -> "") ++
+  val RegMap = Map[Char, String](DIGITAL -> "\\d", LETTER_L -> "[a-z]",
+    LETTER_U -> "[A-Z]", LETTER -> "[a-zA-z]", OTHERLANG -> "[\\u0100-\\uffff]",
+    BLANK -> "\\s", CHAR_WORD -> "\\w", CHAR_ALL -> ".", rootId -> "") ++
     ".\\?*+|{}()[]".toCharArray.map { c => c -> ("\\" + c.toString) }.toMap
 
   /**
@@ -153,7 +166,7 @@ class RegTree {
   }
 
   /**
-    * 将node的所有子节点升到当前级curLevel
+    * 将node的所有子节点升到当前级curLevel，并对相同的节点进行合并
     *
     * @param node
     * @return 所有已升级的节点数
@@ -183,13 +196,13 @@ class RegTree {
     for (child <- node.getChildNodes.values) {
       if (forceLu || (child.getInNum < absGoodNum && forceLu2)) {
         //子节点需要升级
+        lvNum += 1
         val itemUp = charLevelUp(child.getItem, child.getItemLevel)
         child.setItemLevel(curLevel)
         child.setItem(itemUp)
         lvNum += levelUp(child, true)
         newChilds.get(itemUp) match {
           case Some(ns) =>
-            lvNum += 1
             ns.mergeNode(child)
           case None =>
             newChilds += itemUp -> child
@@ -228,6 +241,7 @@ class RegTree {
           node.setInNum(child.getInNum)
           node.setEndNum(child.getEndNum)
         } else if (mergeDepth) {
+          mNum += 1
           childs.remove(child.getItem)
           node.mergeChildNodes(child)
           node.incRepNumUpp(child.getRepNumUpp)
@@ -319,7 +333,13 @@ object RegTree {
   }
 
   def Test1(): Unit = {
-    val data = "国药准字Z22020031\n国药准字Z44021605\n国药准字H20052134\n国药准字H20065128\n国药准字H20063321\n国药准字Z45020047\n国药准字Z44023696\n国药准字Z44020041\n国药准字B20020729\n国药准字Z37021536\n国药准字Z10970003\n国药准字Z20025893\n国药准字Z20025021\n国药准字Z41021818\n国药准字Z13021046\n国药准字Z10980075\n国药准字Z22020445\n国药准字Z45021256\n国药准字Z20027946\n国药准字Z20027945\n国药准字Z20054513\n国药准字Z20064282\n国药准字Z20064281\n国药准字Z20063129\n国药准字Z20053531"
+    val data = "国药准字Z22020031\n国药准字Z44021605\n国药准字H20052134\n国药准字H20065128\n" +
+      "国药准字H20063321\n国药准字Z45020047\n国药准字Z44023696\n国药准字Z44020041\n" +
+      "国药准字B20020729\n国药准字Z37021536\n国药准字Z10970003\n国药准字Z20025893\n" +
+      "国药准字Z20025021\n国药准字Z41021818\n国药准字Z13021046\n国药准字Z10980075\n" +
+      "国药准字Z22020445\n国药准字Z45021256\n国药准字Z20027946\n国药准字Z20027945\n" +
+      "国药准字Z20054513\n国药准字Z20064282\n国药准字Z20064281\n国药准字Z20063129\n" +
+      "国药准字Z20053531"
     val reg = new RegTree
     reg.addData(data.split("\n"))
     // 加两条脏数据
