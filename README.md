@@ -1,6 +1,8 @@
 # RegexMaker
 一种从数据中提取正则表达式的算法
 
+<https://zhuanlan.zhihu.com/p/473683801>
+
 ## 测试示例1
 
 ~~~
